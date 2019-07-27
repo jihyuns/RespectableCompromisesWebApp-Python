@@ -7,7 +7,7 @@ from collections import OrderedDict     # 순서를 기억하는 사전형 라�
 import os                               # 파일에 접근하기 위한 라이브러리
 import json
 
-app = Flask(__name__)                   # 플라스크 웹 서버 객체를 생성한다.
+app = Flask(__name__, static_folder='outputs')                   # 플라스크 웹 서버 객체를 생성한다.
 CORS(app)
 
 file_data = OrderedDict()               # OrderedDict 타입의 file_data 생성
@@ -19,9 +19,11 @@ def init():
 def process_feature(neighbor):
     js = model.most_similar(neighbor)           # 유사 관계 단어 추출
     file_data["children"] = [{"word": js}]
+    path = 'outputs/{0}.json'.format(neighbor)  # json 파일 생성 위치
 
-    with open('outputs/estimator.json', 'w') as f:
+    with open(path, 'w') as f:
         json.dump(file_data, f, indent=1)
+
     
 @app.route("/estimator", methods=['GET', 'POST'])
 def estimator():
@@ -30,7 +32,13 @@ def estimator():
     result = {'result': True}
     return jsonify(result)
 
+@app.route("/outputs", methods=['GET', 'POST'])
+def outputs():
+    neighbor_id = request.args.get('neighbor')
+    return app.send_static_file(neighbor_id + '.json')
+
 if __name__ == '__main__':
     init()
     app.run('0.0.0.0', port=5000, threaded=True)    # 처리 속도 향상을 위해 쓰레드를 적용한다.
 
+                                                             
