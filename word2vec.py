@@ -19,6 +19,7 @@ def init():
 def process_feature(neighbor):
     js = model.most_similar(neighbor)           # 유사 관계 단어 추출
     file_data["children"] = [{"word": js}]
+
     path = 'outputs/{0}.json'.format(neighbor)  # json 파일 생성 위치
 
     with open(path, 'w') as f:
@@ -36,6 +37,19 @@ def estimator():
 def outputs():
     neighbor_id = request.args.get('neighbor')
     return app.send_static_file(neighbor_id + '.json')
+
+@app.route("/validate", methods=['GET', 'POST'])
+def validate():
+    neighbor_id = request.args.get('neighbor')
+    path = "outputs/{0}.json".format(neighbor_id)
+    result = {}
+
+    # 해당 json 파일 존재하는지 확인
+    if os.path.isfile(path):
+        result['result'] = True
+    else:
+        result['result'] = False
+    return jsonify(result)
 
 if __name__ == '__main__':
     init()
